@@ -13,10 +13,14 @@ export default function TimerBlock({ onClick, seconds, side }) {
     return String(no).length == 1 ? `0${no}` : no;
   };
 
+  const invertSide = side => {
+    return side === 'white' ? 'black' : 'white';
+  };
+
   return (
     <TouchableOpacity
       style={[styles.block, side === 'white' ? styles.blockWhite : styles.blockBlack]}
-      onPress={() => onClick(side)}>
+      onPress={() => onClick(invertSide(side))}>
       <Text style={[styles.blockText, side === 'black' && styles.bloakTextBlack]}>
         {time.h ? `${time.h}:` : ''}
         {time.m}:{formatTwoDigits(time.s)}
@@ -40,7 +44,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'black',
   },
   blockText: {
-    fontSize: 60,
+    fontSize: 80,
     fontWeight: 'bold',
   },
   bloakTextBlack: {

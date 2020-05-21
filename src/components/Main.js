@@ -1,34 +1,56 @@
-import React, { useState, useRef } from 'react';
-import { StyleSheet, View, Text } from 'react-native';
+import React, { useState, useRef, useEffect } from 'react';
+import { StyleSheet, View, Vibration } from 'react-native';
 import TimerBlock from './TimerBlock';
+import GameControls from './GameControls';
 
 export default function Main() {
   const timerRef = useRef(null);
   const [whiteTimer, setWhiteTimer] = useState(300);
   const [blackTimer, setBlackTimer] = useState(300);
   const [activePlayer, setActivePlayer] = useState('white');
+  const [clockStatus, setClockStatus] = useState(null); // `RUNNING`, `PAUSED`, `COMPLETED`, `RESET`
+
+  useEffect(() => {
+    switch (clockStatus) {
+      case 'RUNNING':
+        startTimer(activePlayer);
+        break;
+      case 'PAUSED':
+        stopTimer();
+        break;
+      case 'RESET':
+        resetTimer();
+        break;
+      case 'COMPLETED':
+        break;
+    }
+  }, [clockStatus]);
 
   const switchPlayer = to => {
+    console.log('switch player', activePlayer, to);
     // only switch if active player taps on the his block
-    if (activePlayer === to) return;
+    if (activePlayer !== to) return;
     // clear previous setInterval instance as only one timer is used
     stopTimer();
 
-    startTimer();
+    startTimer(to);
 
     // switching to next player and not on first turn
     activePlayer === 'white' ? setActivePlayer('black') : setActivePlayer('white');
+    Vibration.vibrate(200);
   };
 
-  const startTimer = () => {
+  const startTimer = side => {
+    console.log('start timer', activePlayer);
     timerRef.current = setInterval(() => {
+      // TODO: Timer doesn't stop after 0
       // stop the function when player runs out of time
       if (whiteTimer <= 0 || blackTimer <= 0) {
         stopTimer();
         return;
       }
 
-      if (activePlayer === 'white') {
+      if (side === 'white') {
         if (whiteTimer > 0) {
           setWhiteTimer(prevState => prevState - 1);
         } else {
@@ -51,8 +73,8 @@ export default function Main() {
   return (
     <View style={styles.container}>
       <TimerBlock side='white' seconds={whiteTimer} onClick={switchPlayer} />
-      <Text>Game controls</Text>
       <TimerBlock side='black' seconds={blackTimer} onClick={switchPlayer} />
+      <GameControls clockStatus={clockStatus} setClockStatus={setClockStatus} />
     </View>
   );
 }
@@ -64,5 +86,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     height: '100%',
     flexDirection: 'column',
+    position: 'relative',
   },
 });
